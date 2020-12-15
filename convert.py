@@ -1,4 +1,4 @@
-import webvtt
+from calibre_plugins.webvtt_convert.webvtt import WebVTT
 import sys
 import argparse
 import re
@@ -14,8 +14,8 @@ def rreplace(s, old, new):
 
 def convert_file(file_name, main_lang, sub_lang, output_file):
   file_name_sub = rreplace(file_name, main_lang, sub_lang)
-  vtt_main = webvtt.read(file_name)
-  vtt_sub = webvtt.read(file_name_sub)
+  vtt_main = WebVTT.read(file_name)
+  vtt_sub = WebVTT.read(file_name_sub)
 
   # while loop all korean time captions
   index_main = 0
@@ -59,13 +59,13 @@ def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   
   write(file, "<html>")
   for idx, vtt_file_name in enumerate(cc_vtt_files_name):
-    vtt_file = join(args.dir, vtt_file_name)
+    vtt_file = join(vtt_dir, vtt_file_name)
     write(file, '<title>Episode' + str(idx + 1) + '</title>')
     write(file, '<p>======================')
     write(file, '<p>Episode ' + str(idx + 1))
     write(file, '<p>======================')
     write(file, '')
-    convert_file(vtt_file, langs[main_lang_idx], langs[sub_lang_idx])
+    convert_file(vtt_file, main_lang, sub_lang, file)
   
   write(file, "</html>")
   file.close()

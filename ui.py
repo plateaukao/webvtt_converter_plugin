@@ -14,18 +14,18 @@ if False:
 
 # The class that all interface action plugins must inherit from
 from calibre.gui2.actions import InterfaceAction
-from calibre_plugins.interface_demo.main import DemoDialog
+from calibre_plugins.webvtt_convert.main import DemoDialog
 
 class InterfacePlugin(InterfaceAction):
 
-    name = 'Interface Plugin Demo'
+    name = 'WebVtt Converter'
 
     # Declare the main action associated with this plugin
     # The keyboard shortcut can be None if you dont want to use a keyboard
     # shortcut. Remember that currently calibre has no central management for
     # keyboard shortcuts, so try to use an unusual/unused shortcut.
-    action_spec = ('Interface Plugin Demo', None,
-            'Run the Interface Plugin Demo', 'Ctrl+Shift+F1')
+    action_spec = ('WebVtt Converter', None,
+            'Run WebVtt Converter', 'Ctrl+Shift+F1')
 
     def genesis(self):
         # This method is called once per plugin, do initial setup here
@@ -63,7 +63,7 @@ class InterfacePlugin(InterfaceAction):
         d.show()
 
     def apply_settings(self):
-        from calibre_plugins.interface_demo.config import prefs
+        from calibre_plugins.webvtt_convert.config import prefs
         # In an actual non trivial plugin, you would probably need to
         # do something based on the settings in prefs
         prefs

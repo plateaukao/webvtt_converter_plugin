@@ -3,7 +3,7 @@
 
 
 __license__   = 'GPL v3'
-__copyright__ = '2011, Kovid Goyal <kovid@kovidgoyal.net>'
+__copyright__ = '2020, Daniel Kao<daniel.kao@gmail.com>'
 __docformat__ = 'restructuredtext en'
 
 if False:
@@ -12,11 +12,11 @@ if False:
     # You do not need this code in your plugins
     get_icons = get_resources = None
 
-from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog
+from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox
 
-from calibre_plugins.interface_demo.config import prefs
+from calibre_plugins.webvtt_convert.config import prefs
 
-import calibre_plugins.interface_demo.convert as convert
+import calibre_plugins.webvtt_convert.convert as convert
 
 class DemoDialog(QDialog):
 
@@ -54,10 +54,9 @@ class DemoDialog(QDialog):
         # self.marked_button.clicked.connect(self.marked)
         # self.l.addWidget(self.marked_button)
 
-        self.view_button = QPushButton(
-            'View the most recently added book', self)
-        self.view_button.clicked.connect(self.view)
-        self.l.addWidget(self.view_button)
+        #self.view_button = QPushButton('View the most recently added book', self)
+        #self.view_button.clicked.connect(self.view)
+        #self.l.addWidget(self.view_button)
 
         # self.conf_button = QPushButton(
         #         'Configure this plugin', self)
@@ -77,13 +76,38 @@ class DemoDialog(QDialog):
         # get_resources will return a dictionary mapping names to bytes. Names that
         # are not found in the zip file will not be in the returned dictionary.
         text = get_resources('about.txt')
-        QMessageBox.about(self, 'About the Interface Plugin Demo',
-                text.decode('utf-8'))
+        QMessageBox.about(self, 'About the Interface Plugin Demo', text.decode('utf-8'))
 
     def setup_dir(self):
-        file = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
-        langs = convert.get_lang_list(file)
-        QMessageBox.about(self, 'langs', str(langs))
+        self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+        langs = convert.get_lang_list(self.vtt_dir)
+        self.main_lang_combo = QComboBox(self)
+        self.sub_lang_combo = QComboBox(self)
+        for lang in langs:
+            self.main_lang_combo.addItem(lang)
+            self.sub_lang_combo.addItem(lang)
+        self.l.addWidget(self.main_lang_combo)
+        self.l.addWidget(self.sub_lang_combo)
+
+        self.convert_button = QPushButton('Convert', self)
+        self.convert_button.clicked.connect(self.convert_files)
+        self.l.addWidget(self.convert_button)
+
+    def convert_files(self):
+        main_lang = str(self.main_lang_combo.currentText())
+        sub_lang = str(self.sub_lang_combo.currentText())
+        #QMessageBox.about(self, 'About the Interface Plugin Demo', main_lang + sub_lang)
+        # convert to html
+        temp_file = '/tmp/test.html'
+        convert.convert_webvtt_to_html(self.vtt_dir, main_lang, sub_lang, temp_file)
+        # add to library
+        new_api = self.db.new_api
+        from calibre.ebooks.metadata.meta import get_metadata
+        with lopen(temp_file, 'rb') as stream:
+            mi = get_metadata(stream, stream_type='html', use_libprs_metadata=True)
+        ids, duplicates = new_api.add_books([(mi,{'HTML':temp_file})], run_hooks=False)
+        self.db.data.books_added(ids)
+        self.gui.library_view.model().books_added(1)
 
     def marked(self):
         ''' Show books with only one format '''
