@@ -4,6 +4,7 @@ import argparse
 import re
 from os import listdir
 from os.path import isfile, join
+import ntpath
 
 def write(file, str):
     file.write(str + "\n")
@@ -13,6 +14,12 @@ def rreplace(s, old, new):
   return new.join(li)
 
 def convert_file(file_name, main_lang, sub_lang, output_file):
+  if main_lang == sub_lang:
+    vtt_main = WebVTT.read(file_name)
+    for caption in vtt_main:
+        write(output_file, "<h3>" + caption.text.replace("&lrm;","") + "</h3>")
+    return
+
   file_name_sub = rreplace(file_name, main_lang, sub_lang)
   vtt_main = WebVTT.read(file_name)
   vtt_sub = WebVTT.read(file_name_sub)
@@ -40,6 +47,11 @@ def convert_file(file_name, main_lang, sub_lang, output_file):
     index_sub += 1
 
 # main
+def get_film_name(vtt_dir):
+  files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f))]
+  vtt_files_name = [f for f in files if re.match('.*\.vtt$', f)]
+  head, tail = ntpath.split(vtt_files_name[0])
+  return tail.split('.')[0]
 
 def get_lang_list(vtt_dir):
   files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f))]
@@ -51,20 +63,17 @@ def get_lang_list(vtt_dir):
 
 def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f))]
-  vtt_files_name = [f for f in files if re.match('.*\.vtt$', f)]
-  cc_vtt_files_name = [f for f in files if re.match('.*\[cc\]\.vtt$', f)]
-  cc_vtt_files_name.sort()
+  vtt_files_name = [f for f in files if re.match('.*' + main_lang.replace('[', '\[') + '\.vtt$', f)]
+  vtt_files_name.sort()
 
   file = open(output_file, 'w')
   
   write(file, "<html>")
-  for idx, vtt_file_name in enumerate(cc_vtt_files_name):
+  for idx, vtt_file_name in enumerate(vtt_files_name):
     vtt_file = join(vtt_dir, vtt_file_name)
-    write(file, '<title>Episode' + str(idx + 1) + '</title>')
-    write(file, '<p>======================')
-    write(file, '<p>Episode ' + str(idx + 1))
-    write(file, '<p>======================')
-    write(file, '')
+    write(file, '<div class="chapter"><h1>Episode ' + str(idx + 1) + '</h1></div>')
+    write(file, '<br>')
+    write(file, '<br>')
     convert_file(vtt_file, main_lang, sub_lang, file)
   
   write(file, "</html>")

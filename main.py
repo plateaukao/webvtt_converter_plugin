@@ -105,9 +105,11 @@ class DemoDialog(QDialog):
         from calibre.ebooks.metadata.meta import get_metadata
         with lopen(temp_file, 'rb') as stream:
             mi = get_metadata(stream, stream_type='html', use_libprs_metadata=True)
+        mi.title = convert.get_film_name(self.vtt_dir)
         ids, duplicates = new_api.add_books([(mi,{'HTML':temp_file})], run_hooks=False)
         self.db.data.books_added(ids)
         self.gui.library_view.model().books_added(1)
+        self.close()
 
     def marked(self):
         ''' Show books with only one format '''
