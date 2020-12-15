@@ -1,7 +1,7 @@
-The Interface Plugin Demo
+WebVtt Converter
 ===========================
 
-Created by Kovid Goyal
+Created by Daniel Kao <daniel.kao@gmail.com>
 
 Requires calibre >= 0.7.53
 

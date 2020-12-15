@@ -12,10 +12,11 @@ if False:
     # You do not need this code in your plugins
     get_icons = get_resources = None
 
-from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel
+from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog
 
 from calibre_plugins.interface_demo.config import prefs
 
+import calibre_plugins.interface_demo.convert as convert
 
 class DemoDialog(QDialog):
 
@@ -37,32 +38,31 @@ class DemoDialog(QDialog):
         self.label = QLabel(prefs['hello_world_msg'])
         self.l.addWidget(self.label)
 
-        self.setWindowTitle('Interface Plugin Demo')
+        self.setWindowTitle('WebVtt Converter')
         self.setWindowIcon(icon)
 
         self.about_button = QPushButton('About', self)
         self.about_button.clicked.connect(self.about)
         self.l.addWidget(self.about_button)
 
-        self.marked_button = QPushButton(
-            'Show books with only one format in the calibre GUI', self)
-        self.marked_button.clicked.connect(self.marked)
-        self.l.addWidget(self.marked_button)
+        self.setup_dir_button = QPushButton('Choose Directory', self)
+        self.setup_dir_button.clicked.connect(self.setup_dir)
+        self.l.addWidget(self.setup_dir_button)
+
+        # self.marked_button = QPushButton(
+        #     'Show books with only one format in the calibre GUI', self)
+        # self.marked_button.clicked.connect(self.marked)
+        # self.l.addWidget(self.marked_button)
 
         self.view_button = QPushButton(
             'View the most recently added book', self)
         self.view_button.clicked.connect(self.view)
         self.l.addWidget(self.view_button)
 
-        self.update_metadata_button = QPushButton(
-            'Update metadata in a book\'s files', self)
-        self.update_metadata_button.clicked.connect(self.update_metadata)
-        self.l.addWidget(self.update_metadata_button)
-
-        self.conf_button = QPushButton(
-                'Configure this plugin', self)
-        self.conf_button.clicked.connect(self.config)
-        self.l.addWidget(self.conf_button)
+        # self.conf_button = QPushButton(
+        #         'Configure this plugin', self)
+        # self.conf_button.clicked.connect(self.config)
+        # self.l.addWidget(self.conf_button)
 
         self.resize(self.sizeHint())
 
@@ -79,6 +79,11 @@ class DemoDialog(QDialog):
         text = get_resources('about.txt')
         QMessageBox.about(self, 'About the Interface Plugin Demo',
                 text.decode('utf-8'))
+
+    def setup_dir(self):
+        file = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+        langs = convert.get_lang_list(file)
+        QMessageBox.about(self, 'langs', str(langs))
 
     def marked(self):
         ''' Show books with only one format '''
