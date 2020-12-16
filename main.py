@@ -12,7 +12,8 @@ if False:
     # You do not need this code in your plugins
     get_icons = get_resources = None
 
-from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox
+from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox, QHBoxLayout
+from PyQt5.QtCore import Qt
 
 from calibre_plugins.webvtt_convert.config import prefs
 
@@ -35,7 +36,7 @@ class DemoDialog(QDialog):
         self.l = QVBoxLayout()
         self.setLayout(self.l)
 
-        self.label = QLabel(prefs['hello_world_msg'])
+        self.label = QLabel('Click on Choose Directory button first to set the subtile files\' folder, \nand then set up main language and sub language.')
         self.l.addWidget(self.label)
 
         self.setWindowTitle('WebVtt Converter')
@@ -49,19 +50,19 @@ class DemoDialog(QDialog):
         self.setup_dir_button.clicked.connect(self.setup_dir)
         self.l.addWidget(self.setup_dir_button)
 
-        # self.marked_button = QPushButton(
-        #     'Show books with only one format in the calibre GUI', self)
-        # self.marked_button.clicked.connect(self.marked)
-        # self.l.addWidget(self.marked_button)
+        self.main_lang_combo = QComboBox(self)
+        self.main_lang_combo.addItem('-')
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel('Main language:'), alignment=Qt.AlignLeft)
+        hbox.addWidget(self.main_lang_combo)
+        self.l.addLayout(hbox)
 
-        #self.view_button = QPushButton('View the most recently added book', self)
-        #self.view_button.clicked.connect(self.view)
-        #self.l.addWidget(self.view_button)
-
-        # self.conf_button = QPushButton(
-        #         'Configure this plugin', self)
-        # self.conf_button.clicked.connect(self.config)
-        # self.l.addWidget(self.conf_button)
+        self.sub_lang_combo = QComboBox(self)
+        self.sub_lang_combo.addItem('-')
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel('Second language:'), alignment=Qt.AlignLeft)
+        hbox.addWidget(self.sub_lang_combo)
+        self.l.addLayout(hbox)
 
         self.resize(self.sizeHint())
 
@@ -81,13 +82,11 @@ class DemoDialog(QDialog):
     def setup_dir(self):
         self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         langs = convert.get_lang_list(self.vtt_dir)
-        self.main_lang_combo = QComboBox(self)
-        self.sub_lang_combo = QComboBox(self)
+        if len(langs) > 0:
+            self.main_lang_combo.removeItem(0)
         for lang in langs:
             self.main_lang_combo.addItem(lang)
             self.sub_lang_combo.addItem(lang)
-        self.l.addWidget(self.main_lang_combo)
-        self.l.addWidget(self.sub_lang_combo)
 
         self.convert_button = QPushButton('Convert', self)
         self.convert_button.clicked.connect(self.convert_files)
@@ -95,8 +94,16 @@ class DemoDialog(QDialog):
 
     def convert_files(self):
         main_lang = str(self.main_lang_combo.currentText())
+        if main_lang == '-':
+            QMessageBox.about(self, 'Information', 'Select the main language before conversion.')
+            return
+
         sub_lang = str(self.sub_lang_combo.currentText())
+        # if user does not select sub_lang, set it to main_lang, so that when converting, it won't generate sub language.
+        if sub_lang == '-':
+            sub_lang = main_lang
         #QMessageBox.about(self, 'About the Interface Plugin Demo', main_lang + sub_lang)
+
         # convert to html
         temp_file = '/tmp/test.html'
         convert.convert_webvtt_to_html(self.vtt_dir, main_lang, sub_lang, temp_file)

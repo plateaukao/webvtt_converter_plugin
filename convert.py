@@ -66,12 +66,21 @@ def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   vtt_files_name = [f for f in files if re.match('.*' + main_lang.replace('[', '\[') + '\.vtt$', f)]
   vtt_files_name.sort()
 
+  is_series = len([vtt for vtt in vtt_files_name if vtt.find('S02') != -1]) != 0
+
   file = open(output_file, 'w')
-  
   write(file, "<html>")
+
   for idx, vtt_file_name in enumerate(vtt_files_name):
     vtt_file = join(vtt_dir, vtt_file_name)
-    write(file, '<div class="chapter"><h1>Episode ' + str(idx + 1) + '</h1></div>')
+    
+    if is_series:
+      series = vtt_file_name.split('.')[1]
+      season = int(series.split('E')[0][1:])
+      episode = int(series.split('E')[1])
+      write(file, '<div class="chapter"><h1>Season ' + str(season) + ' Episode ' + str(episode) + '</h1></div>')
+    else:
+      write(file, '<div class="chapter"><h1>Episode ' + str(idx + 1) + '</h1></div>')
     write(file, '<br>')
     write(file, '<br>')
     convert_file(vtt_file, main_lang, sub_lang, file)
