@@ -42,9 +42,9 @@ class DemoDialog(QDialog):
         self.setWindowTitle('WebVtt Converter')
         self.setWindowIcon(icon)
 
-        self.about_button = QPushButton('About', self)
-        self.about_button.clicked.connect(self.about)
-        self.l.addWidget(self.about_button)
+        #self.about_button = QPushButton('About', self)
+        #self.about_button.clicked.connect(self.about)
+        #self.l.addWidget(self.about_button)
 
         self.setup_dir_button = QPushButton('Choose Directory', self)
         self.setup_dir_button.clicked.connect(self.setup_dir)

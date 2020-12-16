@@ -3,13 +3,13 @@
 
 
 __license__   = 'GPL v3'
-__copyright__ = '2011, Kovid Goyal <kovid@kovidgoyal.net>'
+__copyright__ = '2020, Daniel Kao<daniel.kao@gmail.com>'
 __docformat__ = 'restructuredtext en'
 
 # The class that all Interface Action plugin wrappers must inherit from
 from calibre.customize import InterfaceActionBase
 
-class InterfacePluginDemo(InterfaceActionBase):
+class WebVttConverterInterface(InterfaceActionBase):
     '''
     This class is a simple wrapper that provides information about the actual
     plugin class. The actual interface plugin class is called InterfacePlugin
@@ -29,14 +29,10 @@ class InterfacePluginDemo(InterfaceActionBase):
     #: This field defines the GUI plugin class that contains all the code
     #: that actually does something. Its format is module_path:class_name
     #: The specified class must be defined in the specified module.
-    actual_plugin       = 'calibre_plugins.webvtt_convert.ui:InterfacePlugin'
+    actual_plugin       = 'calibre_plugins.webvtt_convert.ui:WebVttConverterPlugin'
 
     def is_customizable(self):
-        '''
-        This method must return True to enable customization via
-        Preferences->Plugins
-        '''
-        return True
+        return False
 
     def config_widget(self):
         '''

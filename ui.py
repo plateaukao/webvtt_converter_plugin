@@ -16,7 +16,7 @@ if False:
 from calibre.gui2.actions import InterfaceAction
 from calibre_plugins.webvtt_convert.main import DemoDialog
 
-class InterfacePlugin(InterfaceAction):
+class WebVttConverterPlugin(InterfaceAction):
 
     name = 'WebVtt Converter'
 
