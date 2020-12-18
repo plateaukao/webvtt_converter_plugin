@@ -15,6 +15,9 @@ if False:
 from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox, QHBoxLayout
 from PyQt5.QtCore import Qt
 import os
+import zipfile
+import shutil
+from os.path import expanduser
 
 from calibre_plugins.webvtt_convert.config import prefs
 import calibre_plugins.webvtt_convert.convert as convert
@@ -22,7 +25,7 @@ import calibre_plugins.webvtt_convert.convert as convert
 from calibre.gui2.tools import convert_single_ebook
 from calibre.customize.ui import plugin_for_input_format
 from calibre.gui2 import Dispatcher
-from calibre.ptempfile import PersistentTemporaryFile
+from calibre.ptempfile import PersistentTemporaryFile, PersistentTemporaryDirectory
 
 class WebVttConvertDialog(QDialog):
 
@@ -42,8 +45,8 @@ class WebVttConvertDialog(QDialog):
         self.l = QVBoxLayout()
         self.setLayout(self.l)
 
-        self.label = QLabel('Click on Choose Directory button first to set the subtile files\' folder, \nand then set up main language and sub language.')
-        self.l.addWidget(self.label)
+        label = QLabel('Choose subtitle directory or choose a zip file first, \nand then set up main language and sub language when they appear.')
+        self.l.addWidget(label)
 
         self.setWindowTitle('WebVtt Converter')
         self.setWindowIcon(icon)
@@ -52,9 +55,16 @@ class WebVttConvertDialog(QDialog):
         #self.about_button.clicked.connect(self.about)
         #self.l.addWidget(self.about_button)
 
-        self.setup_dir_button = QPushButton('Choose Subtitle Directory', self)
-        self.setup_dir_button.clicked.connect(self.setup_dir)
-        self.l.addWidget(self.setup_dir_button)
+        self.setup_dir_button = QPushButton('subtitle directory', self)
+        self.setup_dir_button.clicked.connect(self.setup_vtt_dir)
+
+        self.choose_zip_button = QPushButton('subtitle zip file', self)
+        self.choose_zip_button.clicked.connect(self.setup_vtt_zip_file)
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.setup_dir_button)
+        hbox.addWidget(self.choose_zip_button)
+        self.l.addLayout(hbox)
 
         self.setup_cover_file_button = QPushButton('Choose Cover image (Optional)', self)
         self.setup_cover_file_button.clicked.connect(self.setup_cover)
@@ -76,12 +86,37 @@ class WebVttConvertDialog(QDialog):
 
         self.resize(self.sizeHint())
 
+        self.temp_dir = PersistentTemporaryDirectory()
+        #print(self.temp_dir)
+
     def about(self):
         text = get_resources('about.txt')
         QMessageBox.about(self, 'About the Interface Plugin Demo', text.decode('utf-8'))
 
-    def setup_dir(self):
-        self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+    def setup_vtt_zip_file(self):
+        vtt_zip_file,_ = QFileDialog.getOpenFileName(self, 'Select subtitle zip file', 'Zip Files(*.zip)')
+        if vtt_zip_file == "":
+            return
+
+        # extract vtt files inside zip  to temp directory
+        with zipfile.ZipFile(vtt_zip_file, 'r') as zip_ref:
+            for zip_info in zip_ref.infolist():
+                if zip_info.filename[-1] == '/':
+                    continue
+                zip_info.filename = os.path.basename(zip_info.filename)
+                zip_ref.extract(zip_info, self.temp_dir)
+        self.vtt_dir = self.temp_dir
+
+        self.update_language_combobox()
+
+    def setup_vtt_dir(self):
+        self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory", expanduser("~"), QFileDialog.ShowDirsOnly))
+        if self.vtt_dir == "":
+            return
+
+        self.update_language_combobox()
+
+    def update_language_combobox(self):
         langs = convert.get_lang_list(self.vtt_dir)
         if len(langs) > 0:
             self.main_lang_combo.removeItem(0)
@@ -132,7 +167,7 @@ class WebVttConvertDialog(QDialog):
         '''
         return book_id when the html is added to library
         '''
-        html_file = PersistentTemporaryFile('.html')
+        html_file = PersistentTemporaryFile('.html', dir = self.temp_dir)
         convert.convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, html_file.name)
         # add to library
         new_api = self.db.new_api
@@ -150,7 +185,9 @@ class WebVttConvertDialog(QDialog):
         book_ids, duplicates = new_api.add_books([(mi,{'HTML':html_file.name})], run_hooks=False)
         self.db.data.books_added(book_ids)
         self.gui.library_view.model().books_added(1)
-        os.remove(html_file.name)
+
+        # remove temp directory
+        shutil.rmtree(self.temp_dir)
         
         return book_ids[0]
 
@@ -161,74 +198,6 @@ class WebVttConvertDialog(QDialog):
         os.remove(temp_file)
 
         QMessageBox.about(self, 'Conversion', "Conversion is done.")
-
-    def marked(self):
-        ''' Show books with only one format '''
-        db = self.db.new_api
-        matched_ids = {book_id for book_id in db.all_book_ids() if len(db.formats(book_id)) == 1}
-        # Mark the records with the matching ids
-        # new_api does not know anything about marked books, so we use the full
-        # db object
-        self.db.set_marked_ids(matched_ids)
-
-        # Tell the GUI to search for all marked records
-        self.gui.search.setEditText('marked:true')
-        self.gui.search.do_search()
-
-    def view(self):
-        ''' View the most recently added book '''
-        most_recent = most_recent_id = None
-        db = self.db.new_api
-        for book_id, timestamp in db.all_field_for('timestamp', db.all_book_ids()).items():
-            if most_recent is None or timestamp > most_recent:
-                most_recent = timestamp
-                most_recent_id = book_id
-
-        if most_recent_id is not None:
-            # Get a reference to the View plugin
-            view_plugin = self.gui.iactions['View']
-            # Ask the view plugin to launch the viewer for row_number
-            view_plugin._view_calibre_books([most_recent_id])
-
-    def update_metadata(self):
-        '''
-        Set the metadata in the files in the selected book's record to
-        match the current metadata in the database.
-        '''
-        from calibre.ebooks.metadata.meta import set_metadata
-        from calibre.gui2 import error_dialog, info_dialog
-
-        # Get currently selected books
-        rows = self.gui.library_view.selectionModel().selectedRows()
-        if not rows or len(rows) == 0:
-            return error_dialog(self.gui, 'Cannot update metadata',
-                             'No books selected', show=True)
-        # Map the rows to book ids
-        ids = list(map(self.gui.library_view.model().id, rows))
-        db = self.db.new_api
-        for book_id in ids:
-            # Get the current metadata for this book from the db
-            mi = db.get_metadata(book_id, get_cover=True, cover_as_data=True)
-            fmts = db.formats(book_id)
-            if not fmts:
-                continue
-            for fmt in fmts:
-                fmt = fmt.lower()
-                # Get a python file object for the format. This will be either
-                # an in memory file or a temporary on disk file
-                ffile = db.format(book_id, fmt, as_file=True)
-                ffile.seek(0)
-                # Set metadata in the format
-                set_metadata(ffile, mi, fmt)
-                ffile.seek(0)
-                # Now replace the file in the calibre library with the updated
-                # file. We dont use add_format_with_hooks as the hooks were
-                # already run when the file was first added to calibre.
-                db.add_format(book_id, fmt, ffile, run_hooks=False)
-
-        info_dialog(self, 'Updated files',
-                'Updated the metadata in the files of %d book(s)'%len(ids),
-                show=True)
 
     def config(self):
         self.do_user_config(parent=self)
