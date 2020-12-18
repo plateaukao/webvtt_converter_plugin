@@ -45,7 +45,7 @@ class WebVttConvertDialog(QDialog):
         self.l = QVBoxLayout()
         self.setLayout(self.l)
 
-        label = QLabel('Choose subtitle directory or choose a zip file first, \nand then set up main language and sub language when they appear.')
+        label = QLabel('1. Choose subtitle directory or choose a zip file, \n2. set up main language and sub language when they appear.\n3. click Convert button')
         self.l.addWidget(label)
 
         self.setWindowTitle('WebVtt Converter')
@@ -71,18 +71,23 @@ class WebVttConvertDialog(QDialog):
         self.l.addWidget(self.setup_cover_file_button)
 
         self.main_lang_combo = QComboBox(self)
-        self.main_lang_combo.addItem('-')
+        self.main_lang_combo.addItem('-', '-')
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel('Main language:'), alignment=Qt.AlignLeft)
         hbox.addWidget(self.main_lang_combo)
         self.l.addLayout(hbox)
 
         self.sub_lang_combo = QComboBox(self)
-        self.sub_lang_combo.addItem('-')
+        self.sub_lang_combo.addItem('-', '-')
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel('Second language:'), alignment=Qt.AlignLeft)
         hbox.addWidget(self.sub_lang_combo)
         self.l.addLayout(hbox)
+
+        self.convert_button = QPushButton('Convert', self)
+        self.convert_button.clicked.connect(self.convert_vtt_files)
+        self.l.addWidget(self.convert_button)
+        self.convert_button.setEnabled(False)
 
         self.resize(self.sizeHint())
 
@@ -119,25 +124,28 @@ class WebVttConvertDialog(QDialog):
     def update_language_combobox(self):
         langs = convert.get_lang_list(self.vtt_dir)
         if len(langs) > 0:
-            self.main_lang_combo.removeItem(0)
+            self.main_lang_combo.clear()
+            self.sub_lang_combo.clear()
+            self.sub_lang_combo.addItem('-', '-')
         for lang in langs:
-            self.main_lang_combo.addItem(lang)
-            self.sub_lang_combo.addItem(lang)
+            if lang.endswith('-forced'):
+                continue
+            self.main_lang_combo.addItem(self.get_long_language_name(lang), lang)
+            self.sub_lang_combo.addItem(self.get_long_language_name(lang), lang)
 
-        self.convert_button = QPushButton('Convert', self)
-        self.convert_button.clicked.connect(self.convert_vtt_files)
-        self.l.addWidget(self.convert_button)
+        self.convert_button.setEnabled(True)
+
 
     def setup_cover(self):
         self.cover_file_path, _ = QFileDialog.getOpenFileName(self, 'Select Cover Image', 'Image Files(*.png *.jpg *.jpeg)')
 
     def convert_vtt_files(self):
-        main_lang = str(self.main_lang_combo.currentText())
+        main_lang = self.main_lang_combo.currentData()
         if main_lang == '-':
             QMessageBox.about(self, 'Information', 'Select the main language before conversion.')
             return
 
-        sub_lang = str(self.sub_lang_combo.currentText())
+        sub_lang = str(self.sub_lang_combo.currentData())
         # if user does not select sub_lang, set it to main_lang, so that when converting, it won't generate sub language.
         if sub_lang == '-':
             sub_lang = main_lang
@@ -203,3 +211,20 @@ class WebVttConvertDialog(QDialog):
         self.do_user_config(parent=self)
         # Apply the changes
         self.label.setText(prefs['hello_world_msg'])
+
+    def get_long_language_name(self, short_name):
+        if short_name.endswith('[cc]'):
+            name = short_name[:-4]
+            return language_map.get(name, name) + '[cc]'
+        else:
+            return language_map.get(short_name, short_name)
+
+language_map = {
+    'en': 'English', 
+    'ja': "Japanese", 
+    'zh-Hant': "Traditional Chinese",
+    'ko': 'Korean',
+    'en-GB': 'English GB',
+    'fr': 'French',
+    'zh-Hans': 'Simplified Chinese',
+    }
