@@ -14,7 +14,7 @@ if False:
 
 # The class that all interface action plugins must inherit from
 from calibre.gui2.actions import InterfaceAction
-from calibre_plugins.webvtt_convert.main import DemoDialog
+from calibre_plugins.webvtt_convert.main import WebVttConvertDialog
 
 class WebVttConverterPlugin(InterfaceAction):
 
@@ -59,7 +59,7 @@ class WebVttConverterPlugin(InterfaceAction):
         # self.gui is the main calibre GUI. It acts as the gateway to access
         # all the elements of the calibre user interface, it should also be the
         # parent of the dialog
-        d = DemoDialog(self.gui, self.qaction.icon(), do_user_config)
+        d = WebVttConvertDialog(self.gui, self.qaction.icon(), do_user_config)
         d.show()
 
     def apply_settings(self):
