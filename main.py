@@ -46,9 +46,13 @@ class DemoDialog(QDialog):
         #self.about_button.clicked.connect(self.about)
         #self.l.addWidget(self.about_button)
 
-        self.setup_dir_button = QPushButton('Choose Directory', self)
+        self.setup_dir_button = QPushButton('Choose Subtitle Directory', self)
         self.setup_dir_button.clicked.connect(self.setup_dir)
         self.l.addWidget(self.setup_dir_button)
+
+        self.setup_cover_file_button = QPushButton('Choose Cover image (Optional)', self)
+        self.setup_cover_file_button.clicked.connect(self.setup_cover)
+        self.l.addWidget(self.setup_cover_file_button)
 
         self.main_lang_combo = QComboBox(self)
         self.main_lang_combo.addItem('-')
@@ -92,6 +96,9 @@ class DemoDialog(QDialog):
         self.convert_button.clicked.connect(self.convert_files)
         self.l.addWidget(self.convert_button)
 
+    def setup_cover(self):
+        self.cover_file_path, _ = QFileDialog.getOpenFileName(self, 'Select Cover Image', 'Image Files(*.png *.jpg *.jpeg)')
+
     def convert_files(self):
         main_lang = str(self.main_lang_combo.currentText())
         if main_lang == '-':
@@ -112,7 +119,13 @@ class DemoDialog(QDialog):
         from calibre.ebooks.metadata.meta import get_metadata
         with lopen(temp_file, 'rb') as stream:
             mi = get_metadata(stream, stream_type='html', use_libprs_metadata=True)
-        mi.title = convert.get_film_name(self.vtt_dir)
+        if self.cover_file_path != None:
+            ext = self.cover_file_path.rpartition('.')[-1].lower().strip()
+            if ext not in ('png', 'jpg', 'jpeg'):
+                ext = 'jpg'
+            with lopen(self.cover_file_path, 'rb') as stream:
+                mi.cover_data = (ext, stream.read())
+
         ids, duplicates = new_api.add_books([(mi,{'HTML':temp_file})], run_hooks=False)
         self.db.data.books_added(ids)
         self.gui.library_view.model().books_added(1)
