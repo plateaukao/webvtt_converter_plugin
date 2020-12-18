@@ -71,7 +71,7 @@ def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   file = open(output_file, 'w')
   write(file, "<html>")
   title = get_film_name(vtt_dir)
-  write(file, "<title>" + title + "</title")
+  write(file, "<title>" + title + "</title>")
 
   for idx, vtt_file_name in enumerate(vtt_files_name):
     vtt_file = join(vtt_dir, vtt_file_name)
@@ -82,7 +82,7 @@ def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
       episode = int(series.split('E')[1])
       write(file, '<div class="chapter"><h1>Season ' + str(season) + ' Episode ' + str(episode) + '</h1></div>')
     else:
-      write(file, '<div class="chapter"><h1>Episode ' + str(idx + 1) + '</h1></div>')
+      write(file, '<div class="chapter"><h1>Episode ' + str(idx+1) + '</h1></div>')
     write(file, '<br>')
     write(file, '<br>')
     convert_file(vtt_file, main_lang, sub_lang, file)

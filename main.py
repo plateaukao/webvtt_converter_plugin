@@ -182,6 +182,7 @@ class WebVttConvertDialog(QDialog):
         from calibre.ebooks.metadata.meta import get_metadata
         with lopen(html_file.name, 'rb') as stream:
             mi = get_metadata(stream, stream_type='html', use_libprs_metadata=True)
+        mi.tags = ['subtitles']
         if cover_file_path != None:
             ext = cover_file_path.rpartition('.')[-1].lower().strip()
             if ext not in ('png', 'jpg', 'jpeg'):
