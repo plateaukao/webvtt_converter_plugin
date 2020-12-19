@@ -81,6 +81,14 @@ def get_lang_list(vtt_dir):
   langs.sort()
   return langs
 
+# S00E00
+# return season number, and episod number
+def get_series(file_name):
+  segments = file_name.split('.')
+  for segment in segments:
+    if len(segment) == 6 and segment[0] == 'S' and segment[3] == 'E':
+      return (int(segment[1:3]), int(segment[4:6]))
+
 def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f))]
   vtt_files_name = [f for f in files if re.match('.*' + main_lang.replace('[', '\[') + '\.vtt$', f)]
@@ -92,15 +100,13 @@ def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   write(file, "<html>")
   title = get_film_name(vtt_dir)
   write(file, "<title>" + title + "</title>")
-  write(file, '<style> .sub { font-size: 60%;} .cc { font-size: 70%}</style>')
+  write(file, '<style> .sub { font-size: 60%; color: gray} .cc { font-size: 70%}</style>')
 
   for idx, vtt_file_name in enumerate(vtt_files_name):
     vtt_file = join(vtt_dir, vtt_file_name)
     
     if is_series:
-      series = vtt_file_name.split('.')[1]
-      season = int(series.split('E')[0][1:])
-      episode = int(series.split('E')[1])
+      season, episode = get_series(vtt_file_name)
       write(file, '<div class="chapter"><h1>Season ' + str(season) + ' Episode ' + str(episode) + '</h1></div>')
     else:
       write(file, '<div class="chapter"><h1>Episode ' + str(idx+1) + '</h1></div>')
