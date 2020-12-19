@@ -45,7 +45,7 @@ class WebVttConvertDialog(QDialog):
         self.l = QVBoxLayout()
         self.setLayout(self.l)
 
-        label = QLabel('1. Choose subtitle directory or choose a zip file, \n2. set up main language and sub language when they appear.\n3. click Convert button')
+        label = QLabel('1. Choose subtitle directory or choose a zip file, \n2. Setup main language and sub language when they appear.\n3. Click Convert button')
         self.l.addWidget(label)
 
         self.setWindowTitle('WebVtt Converter')

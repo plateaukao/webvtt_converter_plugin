@@ -38,13 +38,19 @@ def convert_file(file_name, main_lang, sub_lang, output_file):
       sub_start = get_time(caption_sub.start)
 
       if (main_start - threshold <= sub_start):
+        # show space between conersation interval longer than 5 seconds
         if main_start > last_main_start + 5000:
-          write(output_file, '<br/><br/>')
-        write(output_file, caption_main.text.replace("&lrm;",""))
+          write(output_file, '<p/>')
+        # if it's [cc], make it smaller
+        text = caption_main.text.replace("&lrm;","").replace('\n', ' ')
+        if text.startswith('[') and text.endswith(']'):
+          write(output_file, '<div class="cc">' + text + '</div>')
+        else:
+          write(output_file, text)
         last_main_start = main_start
         break
       else:
-        write(output_file, '<div class="sub">' + caption_sub.text.replace("&lrm;", "") + "</div>")
+        write(output_file, '<div class="sub">' + caption_sub.text.replace("&lrm;", '').replace('\n', ' ') + '</div>')
         index_sub += 1
     index_main += 1
 
@@ -86,7 +92,7 @@ def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   write(file, "<html>")
   title = get_film_name(vtt_dir)
   write(file, "<title>" + title + "</title>")
-  write(file, '<style> .sub { font-size: 70%;} </style>')
+  write(file, '<style> .sub { font-size: 60%;} .cc { font-size: 70%}</style>')
 
   for idx, vtt_file_name in enumerate(vtt_files_name):
     vtt_file = join(vtt_dir, vtt_file_name)
