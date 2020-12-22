@@ -100,7 +100,7 @@ def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
   write(file, "<html>")
   title = get_film_name(vtt_dir)
   write(file, "<title>" + title + "</title>")
-  write(file, '<style> .sub { font-size: 60%; color: gray} .cc { font-size: 70%}</style>')
+  write(file, '<style> .sub { font-size: 60%; color: gray; margin-top: 0.2em; margin-left: 1.0em; margin-bottom:1.5em; } .cc { font-size: 70%}</style>')
 
   for idx, vtt_file_name in enumerate(vtt_files_name):
     vtt_file = join(vtt_dir, vtt_file_name)
