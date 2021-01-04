@@ -30,12 +30,13 @@ def convert_file(file_name, main_lang, sub_lang, output_file):
   # within how much duration, the captions are considered the same
   threshold = 400
   last_main_start = 0
+  #offset = get_time(vtt_main[0].start) - get_time(vtt_sub[0].start)
   while index_main < len(vtt_main):
     while index_sub < len(vtt_sub):
       caption_main = vtt_main[index_main]
       caption_sub = vtt_sub[index_sub]
       main_start = get_time(caption_main.start)
-      sub_start = get_time(caption_sub.start)
+      sub_start = get_time(caption_sub.start) #+ offset
 
       if (main_start - threshold <= sub_start):
         # show space between conersation interval longer than 5 seconds
@@ -62,8 +63,8 @@ def convert_file(file_name, main_lang, sub_lang, output_file):
 # 00:00:00.000
 def get_time(time_str):
   segments = time_str.split(':')
-  second = segments[2].split('.')[0]
-  millie_second = segments[2].split('.')[1]
+  second = segments[2].replace(',', '.').split('.')[0]
+  millie_second = segments[2].replace(',', '.').split('.')[1]
   return (int(segments[0]) * 3600 + int(segments[1]) * 60 + int(second)) * 1000 + int(millie_second)
 
 # main

@@ -99,7 +99,7 @@ class WebVttConvertDialog(QDialog):
         QMessageBox.about(self, 'About the Interface Plugin Demo', text.decode('utf-8'))
 
     def setup_vtt_zip_file(self):
-        vtt_zip_file,_ = QFileDialog.getOpenFileName(self, 'Select subtitle zip file', 'Zip Files(*.zip)')
+        vtt_zip_file,_ = QFileDialog.getOpenFileName(self, '', 'Select subtitle zip file', 'Zip Files(*.zip)')
         if vtt_zip_file == "":
             return
 
