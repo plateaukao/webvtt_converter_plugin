@@ -23,7 +23,7 @@ class WebVttConverterInterface(InterfaceActionBase):
     description         = 'A plugin to convert webvtt files into epub'
     supported_platforms = ['windows', 'osx', 'linux']
     author              = 'Daniel Kao'
-    version             = (0, 4, 0)
+    version             = (1, 0, 1)
     minimum_calibre_version = (0, 7, 53)
 
     #: This field defines the GUI plugin class that contains all the code
