@@ -196,7 +196,7 @@ class WebVttConvertDialog(QDialog):
         self.gui.library_view.model().books_added(1)
 
         # remove temp directory
-        shutil.rmtree(self.temp_dir)
+        #shutil.rmtree(self.temp_dir)
         
         return book_ids[0]
 
