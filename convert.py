@@ -69,13 +69,13 @@ def get_time(time_str):
 
 # main
 def get_film_name(vtt_dir):
-  files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f))]
+  files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f)) and not f.startswith('._')]
   vtt_files_name = [f for f in files if re.match('.*\.vtt$', f)]
   head, tail = ntpath.split(vtt_files_name[0])
   return tail.split('.')[0]
 
 def get_lang_list(vtt_dir):
-  files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f))]
+  files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f)) and not f.startswith('._')]
   vtt_files_name = [f for f in files if re.match('.*\.vtt$', f)]
   langs = map(lambda name: re.search('.*\.(.+?)\.vtt', name).group(1) ,vtt_files_name)
   langs = list(set(langs)) # uniq
@@ -95,7 +95,7 @@ def get_series(file_name):
           
 
 def convert_webvtt_to_html(vtt_dir, main_lang, sub_lang, output_file):
-  files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f))]
+  files = [f for f in listdir(vtt_dir) if isfile(join(vtt_dir, f)) and not f.startswith('._')]
   vtt_files_name = [f for f in files if re.match('.*' + main_lang.replace('[', '\[') + '\.vtt$', f)]
   vtt_files_name.sort()
 

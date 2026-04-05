@@ -36,18 +36,30 @@ class TextBasedParser(object):
 
     def _get_content_from_file(self, file_path):
         encoding = self._read_file_encoding(file_path)
-        with open(file_path, encoding=encoding) as f:
+        with open(file_path, encoding=encoding, errors='replace') as f:
             return self._read_content_lines(f)
 
     def _read_file_encoding(self, file_path):
-        first_bytes = min(32, os.path.getsize(file_path))
         with open(file_path, 'rb') as f:
-            raw = f.read(first_bytes)
+            raw = f.read()
 
         if raw.startswith(codecs.BOM_UTF8):
             return 'utf-8-sig'
-        else:
+
+        try:
+            raw.decode('utf-8')
             return 'utf-8'
+        except UnicodeDecodeError:
+            pass
+
+        for enc in ('euc-kr', 'cp949', 'big5', 'gb18030', 'shift_jis', 'latin-1'):
+            try:
+                raw.decode(enc)
+                return enc
+            except (UnicodeDecodeError, LookupError):
+                continue
+
+        return 'utf-8'
 
     def _read_content_lines(self, file_obj):
 
