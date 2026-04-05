@@ -18,6 +18,7 @@ except ImportError:
     from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox, QHBoxLayout
     from PyQt5.QtCore import Qt
 import os
+import sys
 import zipfile
 import shutil
 from os.path import expanduser
@@ -117,12 +118,22 @@ class WebVttConvertDialog(QDialog):
 
         self.update_language_combobox()
 
+    def _get_default_dir(self):
+        last = prefs.get('last_vtt_dir', '')
+        if last and os.path.isdir(last):
+            return last
+        downloads = os.path.join(expanduser("~"), "Downloads")
+        if sys.platform == 'darwin' and os.path.isdir(downloads):
+            return downloads
+        return expanduser("~")
+
     def setup_vtt_dir(self):
         show_dirs = getattr(QFileDialog, 'ShowDirsOnly', None) or QFileDialog.Option.ShowDirsOnly
-        self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory", expanduser("~"), show_dirs))
+        self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory", self._get_default_dir(), show_dirs))
         if self.vtt_dir == "":
             return
 
+        prefs['last_vtt_dir'] = self.vtt_dir
         self.update_language_combobox()
 
     def update_language_combobox(self):
@@ -141,7 +152,12 @@ class WebVttConvertDialog(QDialog):
 
 
     def setup_cover(self):
-        self.cover_file_path, _ = QFileDialog.getOpenFileName(self, 'Select Cover Image', 'Image Files(*.png *.jpg *.jpeg)')
+        last_cover_dir = prefs.get('last_cover_dir', '')
+        if not last_cover_dir or not os.path.isdir(last_cover_dir):
+            last_cover_dir = self._get_default_dir()
+        self.cover_file_path, _ = QFileDialog.getOpenFileName(self, 'Select Cover Image', last_cover_dir, 'Image Files(*.png *.jpg *.jpeg)')
+        if self.cover_file_path:
+            prefs['last_cover_dir'] = os.path.dirname(self.cover_file_path)
 
     def convert_vtt_files(self):
         main_lang = self.main_lang_combo.currentData()

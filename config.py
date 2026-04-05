@@ -19,6 +19,8 @@ prefs = JSONConfig('plugins/webvtt_convert')
 
 # Set defaults
 prefs.defaults['hello_world_msg'] = 'Hello, World!'
+prefs.defaults['last_vtt_dir'] = ''
+prefs.defaults['last_cover_dir'] = ''
 
 
 class ConfigWidget(QWidget):
