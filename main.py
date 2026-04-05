@@ -223,6 +223,7 @@ class WebVttConvertDialog(QDialog):
     def converted_func(self, job):
         temp_file = self.jobs[0][-1][-1].name
         self.db.new_api.add_format(self.book_id, self.outputFmt, temp_file, run_hooks=False)
+        self.db.new_api.remove_formats({self.book_id: {'HTML'}})
         self.gui.library_view.model().refresh_ids((self.book_id,))
         os.remove(temp_file)
 
