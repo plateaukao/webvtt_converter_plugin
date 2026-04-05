@@ -12,8 +12,11 @@ if False:
     # You do not need this code in your plugins
     get_icons = get_resources = None
 
-from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox, QHBoxLayout
-from PyQt5.QtCore import Qt
+try:
+    from qt.core import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox, QHBoxLayout, Qt
+except ImportError:
+    from PyQt5.Qt import QDialog, QVBoxLayout, QPushButton, QMessageBox, QLabel, QFileDialog, QComboBox, QHBoxLayout
+    from PyQt5.QtCore import Qt
 import os
 import zipfile
 import shutil
@@ -115,7 +118,8 @@ class WebVttConvertDialog(QDialog):
         self.update_language_combobox()
 
     def setup_vtt_dir(self):
-        self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory", expanduser("~"), QFileDialog.ShowDirsOnly))
+        show_dirs = getattr(QFileDialog, 'ShowDirsOnly', None) or QFileDialog.Option.ShowDirsOnly
+        self.vtt_dir = str(QFileDialog.getExistingDirectory(self, "Select Directory", expanduser("~"), show_dirs))
         if self.vtt_dir == "":
             return
 
